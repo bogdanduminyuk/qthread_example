@@ -30,5 +30,5 @@ class Worker(QObject):
 
     @pyqtSlot()
     def stop(self):
-        print("stop slot")
+        print("worker stop slot")
         self.stop_trigger = True

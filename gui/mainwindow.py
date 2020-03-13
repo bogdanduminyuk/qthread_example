@@ -33,11 +33,17 @@ class MainWindow(QMainWindow):
         self.worker.finished.connect(self.worker_work_finished)
 
     def closeEvent(self, event):
-        self.thread.finished.connect(self.close)
-        self.ui.pushButton_stop.clicked.emit()
+        if not self.thread.isFinished():
+            # disable stop with message
+            self.worker.finished.disconnect(self.worker_work_finished)
 
-        if self.thread.isRunning():
+            self.worker.finished.connect(self.stop_thread)
+            self.thread.finished.connect(self.close)
+            self.ui.pushButton_stop.clicked.emit()
+
             event.ignore()
+        else:
+            event.accept()
 
     def push_button_stop_click(self):
         self.ui.statusbar.showMessage("stop")
