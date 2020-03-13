@@ -15,16 +15,7 @@ if __name__ == '__main__':
     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = get_platforms_path()
 
     app = QApplication(sys.argv)
-    window = QMainWindow()
-    ui = MainWindow()
+    window = MainWindow()
+    window.show()
 
-    try:
-        ui.setupUi(window)
-        window.show()
-
-    except Exception as e:
-        QMessageBox.critical(window, "Critical error",
-                             str(type(e)) + " " + str(e))
-        print(type(e), e)
-    else:
-        sys.exit(app.exec_())
+    sys.exit(app.exec_())

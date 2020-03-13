@@ -16,7 +16,7 @@ class Worker(QObject):
         self.value = 0
         self.stop_trigger = False
 
-        for i in range(100):
+        for i in range(1000000000):
             if self.stop_trigger:
                 break
 

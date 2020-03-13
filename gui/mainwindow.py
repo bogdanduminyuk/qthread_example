@@ -1,28 +1,24 @@
 from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QMainWindow
 
 from gui.ui.mainwindow import Ui_MainWindow
 from .background import Worker
 
 
-class MainWindow(Ui_MainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.window = None
-        self.thread = None
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        self.thread = QThread(self)
         self.worker = Worker()
 
-    def setupUi(self, window):
-        self.window = window
-        self.thread = QThread(window)
-
-        super(MainWindow, self).setupUi(window)
-
-        self.progressBar.setValue(0)
+        self.ui.progressBar.setValue(0)
 
         # connect buttons signals to its slots
-        self.pushButton_stop.clicked.connect(self.push_button_stop_click)
-        self.pushButton_start.clicked.connect(self.push_button_start_click)
+        self.ui.pushButton_stop.clicked.connect(self.push_button_stop_click)
+        self.ui.pushButton_start.clicked.connect(self.push_button_start_click)
 
         # now init thread
         self.worker.moveToThread(self.thread)
@@ -30,26 +26,34 @@ class MainWindow(Ui_MainWindow):
         # connect button click to worker slot
         # !!! you CAN NOT call thread object "worker" directly
         # so, you have to connect it to any signal in your GUI thread
-        self.pushButton_start.clicked.connect(self.worker.do_work)
-        self.pushButton_stop.clicked.connect(self.worker.stop)
+        self.ui.pushButton_start.clicked.connect(self.worker.do_work)
+        self.ui.pushButton_stop.clicked.connect(self.worker.stop)
 
         self.worker.valueChanged.connect(self.worker_value_changed)
         self.worker.finished.connect(self.worker_work_finished)
 
+    def closeEvent(self, event):
+        self.thread.finished.connect(self.close)
+        self.ui.pushButton_stop.clicked.emit()
+
+        if self.thread.isRunning():
+            event.ignore()
+
     def push_button_stop_click(self):
-        self.statusbar.showMessage("stop")
+        self.ui.statusbar.showMessage("stop")
 
     def push_button_start_click(self):
-        self.statusbar.showMessage("start")
+        self.ui.statusbar.showMessage("start")
         self.thread.start()
 
     def worker_value_changed(self, value):
-        self.progressBar.setValue(value)
+        self.ui.progressBar.setValue(value)
 
     def worker_work_finished(self):
         self.stop_thread()
-        QMessageBox.information(self.window, "Information", "Success, your work is done!")
+        QMessageBox.information(self, "Information", "Success, your work is done!")
 
     def stop_thread(self):
+        print("stopping thread")
         self.thread.quit()
         self.thread.wait()
